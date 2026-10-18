@@ -103,7 +103,14 @@ Quarry = "quarry-luau/quarry@0.1.0"
 ReactQuarry = "quarry-luau/react-quarry@0.1.0" # the React hooks, if you use React-Lua
 ```
 
-Then `wally install`. Each [release](https://github.com/quarry-luau/quarry/releases) also has
+Then `wally install`.
+
+> **Note:** the `quarry-luau` scope is waiting for Wally to approve it
+> ([wally-index#131](https://github.com/UpliftGames/wally-index/pull/131)); until then the packages
+> are not on Wally yet. Use the `.rbxm` models from the
+> [latest release](https://github.com/quarry-luau/quarry/releases/latest) meanwhile.
+
+Each [release](https://github.com/quarry-luau/quarry/releases) also has
 `quarry.rbxm` and `react-quarry.rbxm` to drop into a place without Wally (put `react-quarry` next to
 `Quarry` and `React` modules).
 
