@@ -3,15 +3,26 @@ name: Release
 on:
   release:
     types: [published]
+  # Publishes a release again (to Wally, and its models), as for a release whose first publish failed.
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: The release's tag, such as v0.1.0
+        required: true
 
 permissions:
   contents: write
+
+env:
+  TAG: ${{ github.event.release.tag_name || inputs.tag }}
 
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
 
       - uses: CompeyDev/setup-rokit@v0.2.1
         with:
@@ -19,7 +30,7 @@ jobs:
 
       - name: Check the versions match the tag
         run: |
-          version="${GITHUB_REF_NAME#v}"
+          version="${TAG#v}"
           for manifest in lib/quarry/wally.toml lib/react-quarry/wally.toml; do
             grep -q "^version = \"$version\"$" "$manifest" || { echo "$manifest is not version $version"; exit 1; }
           done
@@ -35,22 +46,29 @@ jobs:
       - name: Attach the models to the release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "$GITHUB_REF_NAME" build/quarry.rbxm build/react-quarry.rbxm --clobber
+        run: gh release upload "$TAG" build/quarry.rbxm build/react-quarry.rbxm --clobber
 
       - name: Publish to Wally
         env:
           WALLY_AUTH_TOKEN: ${{ secrets.WALLY_AUTH_TOKEN }}
         run: |
-          version="${GITHUB_REF_NAME#v}"
+          version="${TAG#v}"
+          published() {
+            curl -fsS -H "Wally-Version: 0.3.2" "https://api.wally.run/v1/package-metadata/quarry-luau/$1" 2>/dev/null \
+              | grep -q "\"version\":\"$version\""
+          }
           wally login --token "$WALLY_AUTH_TOKEN"
           for name in quarry react-quarry; do
-            # A version already on Wally (published by hand) is left as it is.
-            if curl -fsS -H "Wally-Version: 0.3.2" "https://api.wally.run/v1/package-metadata/quarry-luau/$name" \
-              | grep -q "\"version\":\"$version\""; then
-              echo "quarry-luau/$name@$version is already published"
+            if published "$name"; then
+              echo "quarry-luau/$name@$version is already on Wally"
               continue
             fi
             wally publish --project-path "lib/$name"
-            # react-quarry depends on this quarry; give the index a moment to have it.
-            sleep 20
+            # The index takes a moment to list a new version; react-quarry needs this quarry listed.
+            for attempt in 1 2 3 4 5 6; do
+              published "$name" && break
+              sleep 10
+            done
+            published "$name" || { echo "quarry-luau/$name@$version is not on Wally after publishing"; exit 1; }
+            echo "Published quarry-luau/$name@$version"
           done
