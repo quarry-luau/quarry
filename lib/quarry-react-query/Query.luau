@@ -11,6 +11,7 @@ export type QueryState = Query.QueryState
 export type QueryStatus = Query.QueryStatus
 export type FetchStatus = Query.FetchStatus
 export type QueryFunction<T = unknown> = Query.QueryFunction<T>
+export type QueryOptions<T> = Query.QueryOptions<T>
 export type QueryObserver = Query.QueryObserver
 export type QueryObserverOptions<T = unknown> = Query.QueryObserverOptions<T>
 export type QueryObserverResult<T = unknown> = Query.QueryObserverResult<T>

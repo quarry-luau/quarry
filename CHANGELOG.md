@@ -5,6 +5,20 @@ and versions follow [Semantic Versioning](https://semver.org).
 
 ## [Unreleased]
 
+### Added
+
+- `Query.queryOptions(options)` defines a query with its data type, as in TanStack Query v5, and
+  `client:getTypedData(definition)` and `client:updateTypedData(definition, updater)` read and
+  write its cache entry with that type.
+
+### Changed
+
+- `QueryFunction<T>`, `QueryObserverOptions<T>` and `QueryObserverResult<T>` are generic in the
+  data (`unknown` when left out). `ReactQuery.Options<T>` is the core's `QueryOptions<T>` and
+  `ReactQuery.Result<T>` its `QueryObserverResult<T>`.
+- A query's state changes through typed fields, so a misspelt field or a status that does not exist
+  no longer type checks.
+
 ## [0.1.0] - 2026-10-18
 
 First release: a port of TanStack Query's query-core and react-query 5.104.

@@ -230,6 +230,34 @@ function QueryClient.setQueryData(
 	return self:_build(options):setData(data, { manual = true })
 end
 
+-- Invariant: data under a key defined with queryOptions is what its queryFn
+-- returned, initialData, or what the typed calls below wrote, all its T, as
+-- long as the key is not also written untyped with something else.
+local function asData<T>(data: unknown): T?
+	return data :: any
+end
+
+-- The data of the query `options` defines, with its type.
+function QueryClient.getTypedData<T>(
+	self: QueryClient,
+	options: Query.QueryOptions<T>
+): T?
+	return asData(self:getQueryData(options.queryKey))
+end
+
+-- Writes what updater returns for the query `options` defines, given its
+-- current data; nil writes nothing. Returns what was written.
+function QueryClient.updateTypedData<T>(
+	self: QueryClient,
+	options: Query.QueryOptions<T>,
+	updater: (old: T?) -> T?
+): T?
+	local function update(old: unknown): unknown
+		return updater(asData(old))
+	end
+	return asData(self:setQueryData(options.queryKey, update))
+end
+
 -- Marks the chosen queries stale and refetches those refetchType names.
 function QueryClient.invalidateQueries(
 	self: QueryClient,

@@ -14,21 +14,8 @@ local Query = require("./Query")
 local React = require("./React")
 local useMutation = require("@self/useMutation")
 
--- A query's options, its data the T its queryFn returns. Not the core's
--- QueryObserverOptions<T>: there queryFn is optional, as in TanStack, and
--- Luau infers T from a function field only when it is required.
-export type Options<T> = {
-	queryKey: Query.QueryKey,
-	queryFn: (context: { queryKey: Query.QueryKey }) -> T,
-	enabled: boolean?,
-	staleTime: number?,
-	gcTime: number?,
-	retry: Query.RetryValue?,
-	retryDelay: Query.RetryDelayValue?,
-	refetchOnMount: (boolean | "always")?,
-	retryOnMount: boolean?,
-	initialData: T?,
-}
+-- A query's options, its data the T its queryFn returns.
+export type Options<T> = Query.QueryOptions<T>
 -- What useQuery reports, its data typed.
 export type Result<T> = Query.QueryObserverResult<T>
 export type MutationOptions<V> = useMutation.Options<V>

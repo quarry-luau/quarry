@@ -3,6 +3,7 @@ local Testing = require("../../../.lune/testing")
 
 local Fake = require("./Fake")
 local Observer = require("../src/Observer")
+local Query = require("../src/Query")
 local QueryClient = require("../src/QueryClient")
 
 type Advance = (seconds: number) -> ()
@@ -469,6 +470,46 @@ local suite: Testing.Suite = function(test, expect)
 		expect.equal(calls, 1)
 		observer:setOptions(options(true))
 		expect.equal(calls, 1)
+	end)
+
+	test("typed calls read and update a defined query's data", function()
+		local client = setup()
+		local player: Query.QueryOptions<{ coins: number }> = {
+			queryKey = { "player" },
+			queryFn = function(): { coins: number }
+				return { coins = 0 }
+			end,
+		}
+		expect.equal(client:getTypedData(player), nil)
+		client:setQueryData({ "player" }, { coins = 10 })
+		local function spend(
+			old: { coins: number }?
+		): { coins: number }?
+			return if old then { coins = old.coins - 4 } else nil
+		end
+		local written = client:updateTypedData(player, spend)
+		expect.deepEqual(written, { coins = 6 })
+		expect.deepEqual(client:getTypedData(player), { coins = 6 })
+		expect.deepEqual(
+			client:getQueryData({ "player" }),
+			{ coins = 6 }
+		)
+	end)
+
+	test("an updater returning nil writes nothing", function()
+		local client = setup()
+		local player: Query.QueryOptions<number> = {
+			queryKey = { "coins" },
+			queryFn = function(): number
+				return 0
+			end,
+		}
+		client:setQueryData({ "coins" }, 5)
+		local function clear(_: number?): number?
+			return nil
+		end
+		expect.equal(client:updateTypedData(player, clear), nil)
+		expect.equal(client:getTypedData(player), 5)
 	end)
 
 	test("switching keys fetches the new one, drops the old", function()

@@ -54,6 +54,21 @@ export type Options<T = unknown> = {
 	-- Picks what the result holds from the data.
 	select: ((data: unknown) -> unknown)?,
 }
+-- A query defined with its data type, as useQuery and queryOptions take it:
+-- queryFn is required here, since Luau infers T only from a required
+-- function field.
+export type QueryOptions<T> = {
+	queryKey: Key.QueryKey,
+	queryFn: QueryFunction<T>,
+	retry: Retryer.RetryValue?,
+	retryDelay: Retryer.RetryDelayValue?,
+	gcTime: number?,
+	initialData: T?,
+	enabled: boolean?,
+	staleTime: number?,
+	refetchOnMount: (boolean | "always")?,
+	retryOnMount: boolean?,
+}
 export type FetchOptions = { cancelRefetch: boolean? }
 export type SetDataOptions = { updatedAt: number?, manual: boolean? }
 -- What an entry needs of an observer.

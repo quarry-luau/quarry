@@ -3,6 +3,7 @@
 -- deliberate error whose message names the inferred type, which must be the
 -- one after `expect:`. A free generic ('a) there means inference was lost.
 
+local Query = require("../../quarry-query/src")
 local ReactQuery = require("../src")
 
 local function count(): number
@@ -28,4 +29,14 @@ local mutation = ReactQuery.useMutation({
 })
 local mutate: never = mutation.mutate -- expect: (string) -> ()
 
-return { data, pick, mutate }
+type Player = { coins: number }
+
+local player = Query.queryOptions({
+	queryKey = { "player" },
+	queryFn = function(): Player
+		return { coins = 0 }
+	end,
+})
+local defined: never = ReactQuery.useQuery(player).data -- expect: Player?
+
+return { data, pick, mutate, defined }

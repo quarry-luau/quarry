@@ -54,6 +54,7 @@ web, you already know Quarry Query.
 - [Quick Start](#quick-start)
 - [Guides](#guides)
   - [Query keys](#query-keys)
+  - [Defining a query once](#defining-a-query-once)
   - [Data the server pushes](#data-the-server-pushes)
   - [Mutations and optimistic updates](#mutations-and-optimistic-updates)
   - [Selecting part of the data](#selecting-part-of-the-data)
@@ -160,6 +161,32 @@ client:invalidateQueries({ queryKey = { "player" } })               -- { "player
 client:invalidateQueries({ queryKey = { "player", 1 }, exact = true }) -- only { "player", 1 }
 ```
 
+### Defining a query once
+
+`Query.queryOptions` defines a query with its data type, as in TanStack Query v5. Hand the
+definition to the hooks, and read and write its cache entry with the typed calls, which know the
+data's type where `getQueryData` and `setQueryData` give `unknown`:
+
+```luau
+local player = Query.queryOptions({
+	queryKey = { "player" },
+	queryFn = function(): PlayerView
+		return Remotes.GetPlayer:InvokeServer()
+	end,
+	staleTime = math.huge,
+})
+
+local result = ReactQuery.useQuery(player) -- result.data: PlayerView?
+local view = client:getTypedData(player) -- PlayerView?
+client:updateTypedData(player, function(old: PlayerView?): PlayerView?
+	return if old then withCoins(old, old.coins + 100) else nil
+end)
+```
+
+Annotate the updater's parameter: Luau does not infer it from the definition. The typed calls trust
+that the key holds the definition's type, so do not write another type under the same key with
+`setQueryData`.
+
 ### Data the server pushes
 
 When the server sends state as it changes, write it into the cache. Every component reading the key
@@ -187,7 +214,7 @@ nothing.
 
 `useMutation` runs a server action and reports `isPending`, `isSuccess`, `isError` and `error`. What
 `onMutate` returns is handed to `onError`, `onSuccess` and `onSettled`, so a roll-back gets the data
-from before:
+from before (`player` is the definition above):
 
 ```luau
 local buy = ReactQuery.useMutation({
@@ -198,16 +225,16 @@ local buy = ReactQuery.useMutation({
 		end
 	end,
 	onMutate = function(item: string): unknown
-		client:cancelQueries({ queryKey = { "player" } }) -- an older answer cannot land after
-		local previous = client:getQueryData({ "player" })
-		client:setQueryData({ "player" }, function(old: unknown): unknown
-			return applyPurchase(old, item)
+		client:cancelQueries({ queryKey = player.queryKey }) -- an older answer cannot land after
+		local previous = client:getTypedData(player)
+		client:updateTypedData(player, function(old: PlayerView?): PlayerView?
+			return if old then applyPurchase(old, item) else nil
 		end)
 		return previous
 	end,
 	onError = function(_: unknown, _: unknown, previous: unknown)
-		client:setQueryData({ "player" }, previous)
-		client:invalidateQueries({ queryKey = { "player" } }) -- and fetch the truth
+		client:setQueryData(player.queryKey, previous)
+		client:invalidateQueries({ queryKey = player.queryKey }) -- and fetch the truth
 	end,
 })
 
@@ -266,6 +293,8 @@ is the default, on Luau's task library and `os.clock`. Quarry Query's own tests 
 |---|---|
 | `QueryClient.new(config?)` | `config.defaultOptions.queries` sets defaults for every query (`retry`, `retryDelay`, `gcTime`, `staleTime`, `refetchOnMount`, `retryOnMount`); `config.scheduler` replaces the clock |
 | `client:getQueryData(key)` | The data under `key`, or nil |
+| `client:getTypedData(definition)` | The data of a query `queryOptions` defined, typed as its `queryFn` returns |
+| `client:updateTypedData(definition, updater)` | Writes what `updater(old)` returns, both typed; nil writes nothing |
 | `client:getQueryState(key)` | The query's state (`status`, `fetchStatus`, `dataUpdatedAt`, `isInvalidated`, counts) |
 | `client:setQueryData(key, dataOrUpdater)` | Writes data; an updater gets the old data; nil writes nothing |
 | `client:invalidateQueries(filters?, options?)` | Marks queries stale and refetches the active ones (`refetchType = "active" \| "inactive" \| "all" \| "none"`) |
@@ -326,7 +355,8 @@ the request rather than `validate`). A `mutate` while the request is out is igno
 
 ### Utilities
 
-`Query.hashKey(key)`, `Query.partialMatchKey(key, filter)`, `Query.replaceEqualDeep(old, new)`,
+`Query.queryOptions(options)` (a query defined with its data type), `Query.hashKey(key)`,
+`Query.partialMatchKey(key, filter)`, `Query.replaceEqualDeep(old, new)`,
 `Query.isCancelledError(value)`, as TanStack exports them.
 
 ### Types
@@ -335,10 +365,10 @@ From `Query`: `QueryKey`, `QueryClient`, `QueryClientConfig`, `QueryFilters`,
 `InvalidateQueryFilters`, `QueryState`, `QueryStatus`, `FetchStatus`, `QueryObserver`,
 `RetryValue`, `RetryDelayValue`, `CancelOptions`, `CancelledError`, `Scheduler`, and, generic in
 the data and `unknown` when left out, `QueryFunction<T>`, `QueryObserverOptions<T>` and
-`QueryObserverResult<T>`.
+`QueryObserverResult<T>`; `QueryOptions<T>` is what `queryOptions` and `useQuery` take.
 
-From `ReactQuery`: `Options<T>` (what `useQuery` takes), `Result<T>` (what it returns, the core's
-`QueryObserverResult<T>`), `MutationOptions<V>` and `Mutation<V>`.
+From `ReactQuery`: `Options<T>` (what `useQuery` takes, the core's `QueryOptions<T>`), `Result<T>`
+(what it returns, the core's `QueryObserverResult<T>`), `MutationOptions<V>` and `Mutation<V>`.
 
 ## Differences from TanStack Query
 
