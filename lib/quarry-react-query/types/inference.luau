@@ -26,6 +26,7 @@ local pick: never = picked.data -- expect: string?
 
 local mutation = ReactQuery.useMutation({
 	mutationFn = function(_: string) end,
+	onMutate = function(_: string) end,
 })
 local mutate: never = mutation.mutate -- expect: (string) -> ()
 

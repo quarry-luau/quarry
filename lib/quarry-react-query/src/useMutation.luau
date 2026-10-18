@@ -16,7 +16,7 @@ local React = require("../React")
 export type Options<V> = {
 	mutationFn: (variables: V) -> (),
 	-- Returns the context the other callbacks get.
-	onMutate: ((variables: V) -> unknown)?,
+	onMutate: ((variables: V) -> ...unknown)?,
 	onSuccess: ((variables: V, context: unknown) -> ())?,
 	onError: ((error: unknown, variables: V, context: unknown) -> ())?,
 	onSettled: ((error: unknown?, variables: V, context: unknown) -> ())?,

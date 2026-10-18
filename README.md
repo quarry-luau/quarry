@@ -227,13 +227,12 @@ local buy = ReactQuery.useMutation({
 			error(outcome, 0) -- fails the mutation
 		end
 	end,
-	onMutate = function(item: string): unknown
+	onMutate = function(item: string)
 		client:cancelQueries({ queryKey = player.queryKey }) -- an older answer cannot land after
 		before = data:get()
 		data:update(function(old)
 			return if old then applyPurchase(old, item) else nil
 		end)
-		return nil
 	end,
 	onError = function()
 		data:set(before)

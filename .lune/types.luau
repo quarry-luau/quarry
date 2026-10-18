@@ -2,7 +2,8 @@
 -- Checks what the packages infer, which no runtime test can see: in each
 -- file under lib/*/types, every `never` assignment is a deliberate error, and
 -- the type luau-lsp names in it must be the one its `-- expect:` comment
--- gives. A free generic ('a) in its place means inference was lost.
+-- gives. A free generic ('a) in its place means inference was lost. Any
+-- other error in those files fails too.
 -- Usage: lune run types (after lune run analyze has fetched the definitions)
 
 local fs = require("@lune/fs")
@@ -43,8 +44,9 @@ local function expectations(file: string): { Check }
 	return checks
 end
 
--- The type each line's deliberate error names, by line.
-local function inferred(file: string): { [number]: string }
+-- The type each line's deliberate error names, by line, and every other
+-- error luau-lsp reports in `file`.
+local function analyze(file: string): ({ [number]: string }, { string })
 	local result = process.exec("luau-lsp", {
 		"analyze",
 		"--platform=roblox",
@@ -56,7 +58,7 @@ local function inferred(file: string): { [number]: string }
 	-- A long message continues on the next line, indented.
 	local output =
 		string.gsub(result.stdout .. result.stderr, "\r?\n%s+", " ")
-	local found = {}
+	local found, other = {}, {}
 	for _, line in string.split(output, "\n") do
 		local number, named = string.match(line, FOUND)
 		if number and named then
@@ -64,14 +66,20 @@ local function inferred(file: string): { [number]: string }
 				named,
 				"^'(.*)'%s*$"
 			) or named
+		elseif string.find(line, "%(%d+,%d+%): %a*Error:") then
+			table.insert(other, line)
 		end
 	end
-	return found
+	return found, other
 end
 
 local failures = 0
 for _, file in typeFiles() do
-	local found = inferred(file)
+	local found, other = analyze(file)
+	for _, problem in other do
+		failures += 1
+		print(problem)
+	end
 	for _, check in expectations(file) do
 		local got = found[check.line]
 		if got ~= check.expected then
