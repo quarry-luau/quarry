@@ -14,6 +14,9 @@ local Query = require("./Query")
 local React = require("./React")
 local useMutation = require("@self/useMutation")
 
+-- A query's options, its data the T its queryFn returns. Written out, not
+-- Query.QueryObserverOptions<T>: Luau infers T through a table type declared
+-- here, and not through that alias.
 export type Options<T> = {
 	queryKey: Query.QueryKey,
 	queryFn: (context: { queryKey: Query.QueryKey }) -> T,
@@ -26,30 +29,8 @@ export type Options<T> = {
 	retryOnMount: boolean?,
 	initialData: T?,
 }
--- Quarry Query's QueryObserverResult with typed data.
-export type Result<T> = {
-	data: T?,
-	dataUpdatedAt: number,
-	error: unknown,
-	errorUpdatedAt: number,
-	errorUpdateCount: number,
-	failureCount: number,
-	failureReason: unknown,
-	status: Query.QueryStatus,
-	fetchStatus: Query.FetchStatus,
-	isPending: boolean,
-	isSuccess: boolean,
-	isError: boolean,
-	isFetching: boolean,
-	isLoading: boolean,
-	isRefetching: boolean,
-	isLoadingError: boolean,
-	isRefetchError: boolean,
-	isFetched: boolean,
-	isStale: boolean,
-	isEnabled: boolean,
-	refetch: () -> (),
-}
+-- What useQuery reports, its data typed.
+export type Result<T> = Query.QueryObserverResult<T>
 export type MutationOptions<V> = useMutation.Options<V>
 export type Mutation<V> = useMutation.Mutation<V>
 
@@ -94,6 +75,7 @@ local function asData<T>(data: unknown): T
 	return data :: any
 end
 
+-- The observer's options for `options`, picking with `select`.
 local function observerOptions<T>(
 	options: Options<T>,
 	select: Select?

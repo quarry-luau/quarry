@@ -29,14 +29,30 @@ export type State = {
 	status: Status,
 	fetchStatus: FetchStatus,
 }
-export type QueryFunction = (context: { queryKey: Key.QueryKey }) -> unknown
-export type Options = {
+-- What fetches a query's data, T.
+export type QueryFunction<T = unknown> = (
+	context: { queryKey: Key.QueryKey }
+) -> T
+-- A query's options, as TanStack's QueryObserverOptions holds them: what the
+-- query is (key, queryFn whose data is T, retries, gcTime, initialData) and
+-- how an observer reads it. A query reads only the first part.
+export type Options<T = unknown> = {
 	queryKey: Key.QueryKey,
-	queryFn: QueryFunction?,
+	queryFn: QueryFunction<T>?,
 	retry: Retryer.RetryValue?,
 	retryDelay: Retryer.RetryDelayValue?,
 	gcTime: number?,
-	initialData: unknown,
+	initialData: T?,
+	-- Whether the query fetches by itself (true).
+	enabled: boolean?,
+	-- Seconds data stays fresh (0); math.huge until invalidated or set.
+	staleTime: number?,
+	-- Whether subscribing fetches stale data: true, false or "always".
+	refetchOnMount: (boolean | "always")?,
+	-- Whether subscribing fetches again after an error (true).
+	retryOnMount: boolean?,
+	-- Picks what the result holds from the data.
+	select: ((data: unknown) -> unknown)?,
 }
 export type FetchOptions = { cancelRefetch: boolean? }
 export type SetDataOptions = { updatedAt: number?, manual: boolean? }
@@ -80,16 +96,6 @@ type QueryData = {
 
 export type Query = typeof(setmetatable({} :: QueryData, Query))
 
--- Invariant: changes names only fields of State, each with a value of that
--- field's type, so the merged table is a State.
-local function merged(state: State, changes: { [string]: unknown }): State
-	local result: any = table.clone(state)
-	for field, value in changes do
-		result[field] = value
-	end
-	return result
-end
-
 local function defaultState(options: Options, now: number): State
 	local data = options.initialData
 	return {
@@ -108,16 +114,15 @@ local function defaultState(options: Options, now: number): State
 end
 
 local function fetchState(state: State): State
-	local changes: { [string]: unknown } = {
-		fetchFailureCount = 0,
-		fetchFailureReason = nil,
-		fetchStatus = "fetching",
-	}
+	local next = table.clone(state)
+	next.fetchFailureCount = 0
+	next.fetchFailureReason = nil
+	next.fetchStatus = "fetching"
 	if state.data == nil then
-		changes.error = nil
-		changes.status = "pending"
+		next.error = nil
+		next.status = "pending"
 	end
-	return merged(state, changes)
+	return next
 end
 
 local function successState(
@@ -126,43 +131,58 @@ local function successState(
 	at: number,
 	manual: boolean
 ): State
-	local changes: { [string]: unknown } = {
-		data = data,
-		dataUpdatedAt = at,
-		error = nil,
-		isInvalidated = false,
-		status = "success",
-		dataUpdateCount = state.dataUpdateCount + 1,
-	}
+	local next = table.clone(state)
+	next.data = data
+	next.dataUpdatedAt = at
+	next.dataUpdateCount = state.dataUpdateCount + 1
+	next.error = nil
+	next.isInvalidated = false
+	next.status = "success"
 	if not manual then
-		changes.fetchStatus = "idle"
-		changes.fetchFailureCount = 0
-		changes.fetchFailureReason = nil
+		next.fetchStatus = "idle"
+		next.fetchFailureCount = 0
+		next.fetchFailureReason = nil
 	end
-	return merged(state, changes)
+	return next
 end
 
+-- Data kept through an error is stale; no data always is.
 local function errorState(state: State, problem: unknown, now: number): State
-	return merged(state, {
-		error = problem,
-		errorUpdateCount = state.errorUpdateCount + 1,
-		errorUpdatedAt = now,
-		fetchFailureCount = state.fetchFailureCount + 1,
-		fetchFailureReason = problem,
-		fetchStatus = "idle",
-		status = "error",
-		-- Data kept through an error is stale; no data always is.
-		isInvalidated = true,
-	})
+	local next = table.clone(state)
+	next.error = problem
+	next.errorUpdateCount = state.errorUpdateCount + 1
+	next.errorUpdatedAt = now
+	next.fetchFailureCount = state.fetchFailureCount + 1
+	next.fetchFailureReason = problem
+	next.fetchStatus = "idle"
+	next.status = "error"
+	next.isInvalidated = true
+	return next
+end
+
+local function failedState(state: State, count: number, problem: unknown): State
+	local next = table.clone(state)
+	next.fetchFailureCount = count
+	next.fetchFailureReason = problem
+	return next
+end
+
+local function invalidatedState(state: State): State
+	local next = table.clone(state)
+	next.isInvalidated = true
+	return next
+end
+
+local function revertedState(state: State): State
+	local next = table.clone(state)
+	next.fetchStatus = "idle"
+	return next
 end
 
 -- The state after action, now being the scheduler's clock.
 local function reduce(state: State, action: Action, now: number): State
 	if action.type == "failed" then
-		return merged(state, {
-			fetchFailureCount = action.failureCount,
-			fetchFailureReason = action.error,
-		})
+		return failedState(state, action.failureCount, action.error)
 	elseif action.type == "fetch" then
 		return fetchState(state)
 	elseif action.type == "success" then
@@ -176,9 +196,9 @@ local function reduce(state: State, action: Action, now: number): State
 	elseif action.type == "error" then
 		return errorState(state, action.error, now)
 	elseif action.type == "invalidate" then
-		return merged(state, { isInvalidated = true })
+		return invalidatedState(state)
 	end
-	return merged(action.state, { fetchStatus = "idle" })
+	return revertedState(action.state)
 end
 
 function Query.new(

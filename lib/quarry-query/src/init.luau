@@ -17,10 +17,10 @@ export type InvalidateQueryFilters = QueryClient.InvalidateFilters
 export type QueryState = Query.State
 export type QueryStatus = Query.Status
 export type FetchStatus = Query.FetchStatus
-export type QueryFunction = Query.QueryFunction
+export type QueryFunction<T = unknown> = Query.QueryFunction<T>
 export type QueryObserver = Observer.Observer
-export type QueryObserverOptions = Observer.Options
-export type QueryObserverResult = Observer.Result
+export type QueryObserverOptions<T = unknown> = Observer.Options<T>
+export type QueryObserverResult<T = unknown> = Observer.Result<T>
 export type RetryValue = Retryer.RetryValue
 export type RetryDelayValue = Retryer.RetryDelayValue
 export type CancelOptions = Retryer.CancelOptions

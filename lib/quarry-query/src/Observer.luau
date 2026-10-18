@@ -15,28 +15,11 @@
 
 local Key = require("./Key")
 local Query = require("./Query")
-local Retryer = require("./Retryer")
 
-export type Options = {
-	queryKey: Key.QueryKey,
-	queryFn: Query.QueryFunction?,
-	retry: Retryer.RetryValue?,
-	retryDelay: Retryer.RetryDelayValue?,
-	gcTime: number?,
-	initialData: unknown,
-	-- Whether the query fetches by itself (true).
-	enabled: boolean?,
-	-- Seconds data stays fresh (0); math.huge until invalidated or set.
-	staleTime: number?,
-	-- Whether subscribing fetches stale data: true, false or "always".
-	refetchOnMount: (boolean | "always")?,
-	-- Whether subscribing fetches again after an error (true).
-	retryOnMount: boolean?,
-	-- Picks what the result holds from the data.
-	select: ((data: unknown) -> unknown)?,
-}
-export type Result = {
-	data: unknown,
+export type Options<T = unknown> = Query.Options<T>
+-- What an observer reports, its data of type T.
+export type Result<T = unknown> = {
+	data: T?,
 	dataUpdatedAt: number,
 	error: unknown,
 	errorUpdatedAt: number,
