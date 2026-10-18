@@ -29,5 +29,7 @@ run("luau-lsp", {
 	`--definitions=@roblox={DEFINITIONS_PATH}`,
 	"--settings=.vscode/settings.json",
 	"--ignore=Packages/**",
+	-- Deliberate errors, checked by lune run types.
+	"--ignore=lib/*/types/**",
 	"lib",
 })

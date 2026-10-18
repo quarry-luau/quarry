@@ -1,6 +1,6 @@
 --!strict
 -- Everything CI checks: the license copies, format, style, lint, types,
--- tests, and that both packages build.
+-- what the hooks infer, tests, and that both packages build.
 -- Usage: lune run check (after lune run install)
 
 local fs = require("@lune/fs")
@@ -20,6 +20,7 @@ run("stylua", { "--check", "lib", ".lune" })
 run("lune", { "run", "style" })
 run("selene", { "lib" })
 run("lune", { "run", "analyze" })
+run("lune", { "run", "types" })
 run("lune", { "run", "test" })
 run("lune", { "run", "build" })
 print("All checks passed")

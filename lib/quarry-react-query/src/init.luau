@@ -14,9 +14,9 @@ local Query = require("./Query")
 local React = require("./React")
 local useMutation = require("@self/useMutation")
 
--- A query's options, its data the T its queryFn returns. Written out, not
--- Query.QueryObserverOptions<T>: Luau infers T through a table type declared
--- here, and not through that alias.
+-- A query's options, its data the T its queryFn returns. Not the core's
+-- QueryObserverOptions<T>: there queryFn is optional, as in TanStack, and
+-- Luau infers T from a function field only when it is required.
 export type Options<T> = {
 	queryKey: Query.QueryKey,
 	queryFn: (context: { queryKey: Query.QueryKey }) -> T,
