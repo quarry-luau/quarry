@@ -73,6 +73,8 @@ type QueryClientData = {
 	_scheduler: Scheduler.Scheduler,
 	_defaults: Defaults,
 	_queries: { [string]: Query.Query },
+	-- Hashes of the keys read typed, which only client:data may write.
+	_claimed: { [string]: boolean },
 	_observerClient: Observer.Client,
 }
 
@@ -148,6 +150,7 @@ function QueryClient.new(config: Config?): QueryClient
 			else Scheduler.task(),
 		_defaults = defaultsOf(config),
 		_queries = {},
+		_claimed = {},
 		_observerClient = {
 			build = function(
 				options: Observer.Options
@@ -223,7 +226,25 @@ function QueryClient.getQueryState(self: QueryClient, key: Key.QueryKey)
 end
 
 -- Writes data, or what updater(old) returns, under key; nil writes nothing.
+-- A key read typed (client:data, useQuery) is written only through
+-- client:data, so its typed readers get its type: writing it here raises.
 function QueryClient.setQueryData(
+	self: QueryClient,
+	key: Key.QueryKey,
+	updater: unknown
+): unknown
+	local hash = Key.hash(key)
+	if self._claimed[hash] then
+		error(
+			`{hash} is read typed (client:data, useQuery); `
+				.. "write it with client:data(definition)",
+			2
+		)
+	end
+	return self:_write(key, updater)
+end
+
+function QueryClient._write(
 	self: QueryClient,
 	key: Key.QueryKey,
 	updater: unknown
@@ -247,16 +268,17 @@ end
 -- The cache entry of the query `definition` defines, read and written as
 -- its data type: get() the data, set(value) it, or update(updater) it from
 -- the data there. set and update write nothing for nil, and return what
--- they wrote.
+-- they wrote. The key is claimed: setQueryData no longer writes it.
 function QueryClient.data<T>(
 	self: QueryClient,
 	definition: Query.QueryOptions<T>
 ): Data<T>
 	local client, key = self, definition.queryKey
+	self._claimed[Key.hash(key)] = true
 	-- Always an updater: setQueryData would take data that is a function
 	-- for one.
 	local function write(value: unknown): T?
-		return asData(client:setQueryData(key, function(): unknown
+		return asData(client:_write(key, function(): unknown
 			return value
 		end))
 	end

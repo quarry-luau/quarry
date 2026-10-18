@@ -38,10 +38,12 @@ web, you already know Quarry Query.
   nothing is watching.
 - **Freshness**: `staleTime`, refetch on mount, `invalidateQueries` (which also replaces a fetch
   already out, so an older answer cannot land after a change).
-- **Server pushes**: write what the server sends with `setQueryData`, as a TanStack app writes what
-  a websocket brings.
-- **Optimistic updates**: `cancelQueries`, snapshot with `getQueryData`, write, and roll back on
-  failure; `cancelQueries` restores the state from before the fetch.
+- **Server pushes**: write what the server sends into the cache, as a TanStack app writes what a
+  websocket brings.
+- **Optimistic updates**: `cancelQueries`, snapshot, write, and roll back on failure;
+  `cancelQueries` restores the state from before the fetch.
+- **Typed cache access**: define a query once with `queryOptions`, and read and write its data as
+  its type; a key read typed can only be written that way.
 - **Structural sharing and tracked props**: unchanged parts of new data keep their identity, and a
   component re-renders only when a field it read changed.
 - **Testable**: inject a scheduler and drive time yourself; no waiting in tests.
@@ -186,40 +188,38 @@ data:update(function(old) -- old: PlayerView?
 end)
 ```
 
-`set` and `update` write nothing for `nil`. The entry is typed by its definition, so write a
-defined query through its entry: `setQueryData` with the same key writes whatever it is given, as
-TanStack's does with a plain key.
+`set` and `update` write nothing for `nil`. Once a key is read typed (through `client:data` or
+`useQuery`), `setQueryData` on it raises: only its typed entry writes it, so every typed reader gets
+the type its definition promises.
 
 ### Data the server pushes
 
 When the server sends state as it changes, write it into the cache. Every component reading the key
-updates, and the query never needs to fetch again by itself:
+updates, and the query never needs to fetch again by itself (`player` is the definition above, with
+`staleTime = math.huge`):
 
 ```luau
-Remotes.PlayerChanged.OnClientEvent:Connect(function(view)
-	client:setQueryData({ "player" }, view)
+Remotes.PlayerChanged.OnClientEvent:Connect(function(view: PlayerView)
+	client:data(player):set(view)
 end)
 
 -- Fetched once on the first mount, then kept current by the pushes.
-local player = ReactQuery.useQuery({
-	queryKey = { "player" },
-	queryFn = function(): PlayerView
-		return Remotes.GetPlayer:InvokeServer()
-	end,
-	staleTime = math.huge,
-})
+local result = ReactQuery.useQuery(player)
 ```
 
-`setQueryData` also takes an updater, `function(old) return new end`; returning `nil` writes
-nothing.
+For a key nothing reads typed, `setQueryData(key, data)` writes it, and also takes an updater,
+`function(old) return new end`; returning `nil` writes nothing.
 
 ### Mutations and optimistic updates
 
 `useMutation` runs a server action and reports `isPending`, `isSuccess`, `isError` and `error`. What
-`onMutate` returns is handed to `onError`, `onSuccess` and `onSettled`, so a roll-back gets the data
-from before (`player` is the definition above):
+`onMutate` returns is handed to `onError`, `onSuccess` and `onSettled` as their context. Here the
+roll-back keeps the data from before in a typed local instead (`player` is the definition above):
 
 ```luau
+local data = client:data(player)
+local before: PlayerView? = nil
+
 local buy = ReactQuery.useMutation({
 	mutationFn = function(item: string)
 		local outcome = Remotes.Buy:InvokeServer(item)
@@ -229,15 +229,14 @@ local buy = ReactQuery.useMutation({
 	end,
 	onMutate = function(item: string): unknown
 		client:cancelQueries({ queryKey = player.queryKey }) -- an older answer cannot land after
-		local data = client:data(player)
-		local previous = data:get()
+		before = data:get()
 		data:update(function(old)
 			return if old then applyPurchase(old, item) else nil
 		end)
-		return previous
+		return nil
 	end,
-	onError = function(_: unknown, _: unknown, previous: unknown)
-		client:setQueryData(player.queryKey, previous)
+	onError = function()
+		data:set(before)
 		client:invalidateQueries({ queryKey = player.queryKey }) -- and fetch the truth
 	end,
 })
@@ -299,7 +298,7 @@ is the default, on Luau's task library and `os.clock`. Quarry Query's own tests 
 | `client:getQueryData(key)` | The data under `key`, or nil |
 | `client:data(definition)` | The cache entry of a query `queryOptions` defined, typed as its `queryFn` returns: `get()`, `set(value)`, `update(updater)`; nil writes nothing |
 | `client:getQueryState(key)` | The query's state (`status`, `fetchStatus`, `dataUpdatedAt`, `isInvalidated`, counts) |
-| `client:setQueryData(key, dataOrUpdater)` | Writes data; an updater gets the old data; nil writes nothing |
+| `client:setQueryData(key, dataOrUpdater)` | Writes data; an updater gets the old data; nil writes nothing; raises for a key read typed |
 | `client:invalidateQueries(filters?, options?)` | Marks queries stale and refetches the active ones (`refetchType = "active" \| "inactive" \| "all" \| "none"`) |
 | `client:refetchQueries(filters?, options?)` | Fetches again, replacing a fetch out unless `cancelRefetch = false` |
 | `client:cancelQueries(filters?, options?)` | Drops fetches out and restores the state from before them (`revert = false` keeps it) |

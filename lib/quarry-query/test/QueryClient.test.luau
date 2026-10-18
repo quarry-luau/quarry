@@ -534,6 +534,27 @@ local suite: Testing.Suite = function(test, expect)
 		expect.equal(callback:get(), handler)
 	end)
 
+	test("a key read typed is written only through client:data", function()
+		local client = setup()
+		client:setQueryData({ "player", 1 }, 1)
+		local player = client:data({
+			queryKey = { "player", 1 },
+			queryFn = function(): number
+				return 0
+			end,
+		})
+		local problem = expect.throws(function()
+			client:setQueryData({ "player", 1 }, 2)
+		end)
+		expect.contains(
+			problem,
+			"write it with client:data(definition)"
+		)
+		expect.equal(player:get(), 1)
+		expect.equal(player:set(3), 3)
+		expect.equal(client:setQueryData({ "player", 2 }, 4), 4)
+	end)
+
 	test("switching keys fetches the new one, drops the old", function()
 		local client = setup()
 		local observer = client:observe({

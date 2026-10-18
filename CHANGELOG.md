@@ -13,6 +13,9 @@ and versions follow [Semantic Versioning](https://semver.org).
 
 ### Changed
 
+- `setQueryData` raises for a key read typed (through `client:data` or `useQuery`); such a key is
+  written only through `client:data(definition)`, so its typed readers always get its type.
+
 - `QueryFunction<T>`, `QueryObserverOptions<T>` and `QueryObserverResult<T>` are generic in the
   data (`unknown` when left out). `ReactQuery.Options<T>` is the core's `QueryOptions<T>` and
   `ReactQuery.Result<T>` its `QueryObserverResult<T>`.

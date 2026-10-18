@@ -109,8 +109,15 @@ local function useBaseQuery(
 	return observer:trackResult(result)
 end
 
+-- Reading a query typed claims its key: from then on only client:data
+-- writes it, so this component gets the type its options promise.
+local function useClaim<T>(options: Options<T>)
+	ReactQuery.useQueryClient():data(options)
+end
+
 -- The query options name: its data (what queryFn returns) and state.
 function ReactQuery.useQuery<T>(options: Options<T>): Result<T>
+	useClaim(options)
 	return typed(useBaseQuery(observerOptions(options, nil)))
 end
 
@@ -120,6 +127,7 @@ function ReactQuery.useQuerySelect<T, S>(
 	options: Options<T>,
 	select: (data: T) -> S
 ): Result<S>
+	useClaim(options)
 	local function pick(data: unknown): unknown
 		return select(asData(data))
 	end
