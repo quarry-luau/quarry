@@ -66,6 +66,7 @@ web, you already know Quarry Query.
   - [React hooks](#react-hooks)
   - [`useMutation`](#usemutation)
   - [Utilities](#utilities)
+  - [Types](#types)
 - [Differences from TanStack Query](#differences-from-tanstack-query)
 - [Development](#development)
 - [License](#license)
@@ -328,6 +329,17 @@ the request rather than `validate`). A `mutate` while the request is out is igno
 `Query.hashKey(key)`, `Query.partialMatchKey(key, filter)`, `Query.replaceEqualDeep(old, new)`,
 `Query.isCancelledError(value)`, as TanStack exports them.
 
+### Types
+
+From `Query`: `QueryKey`, `QueryClient`, `QueryClientConfig`, `QueryFilters`,
+`InvalidateQueryFilters`, `QueryState`, `QueryStatus`, `FetchStatus`, `QueryObserver`,
+`RetryValue`, `RetryDelayValue`, `CancelOptions`, `CancelledError`, `Scheduler`, and, generic in
+the data and `unknown` when left out, `QueryFunction<T>`, `QueryObserverOptions<T>` and
+`QueryObserverResult<T>`.
+
+From `ReactQuery`: `Options<T>` (what `useQuery` takes), `Result<T>` (what it returns, the core's
+`QueryObserverResult<T>`), `MutationOptions<V>` and `Mutation<V>`.
+
 ## Differences from TanStack Query
 
 | TanStack Query | Quarry Query |
@@ -351,14 +363,15 @@ You need [Rokit](https://github.com/rojo-rbx/rokit). Then:
 ```sh
 rokit install
 lune run install   # React for type checking the bindings, sourcemap, package types
-lune run check     # license, format, style, lint, types, tests, builds: what CI runs
+lune run check     # license, format, style, lint, types, inference, tests, builds: what CI runs
 lune run test      # the tests alone; `lune run test Key` filters by path
 ```
 
 The code follows the Linux kernel coding style, read for Luau: see [STYLE.md](STYLE.md).
-`lib/quarry-query` is the core and `lib/quarry-react-query` the React bindings; each is a Wally package. The
-core's tests are in `lib/quarry-query/test` and run in Lune with a scheduler they drive by hand; every rule
-ported from TanStack has a test, and each test has been seen to fail when its rule is broken.
+`lib/quarry-query` is the core and `lib/quarry-react-query` the React bindings; each is a Wally
+package. The core's tests are in `lib/quarry-query/test` and run in Lune with a scheduler they
+drive by hand; they were checked by breaking 16 of the ported rules one at a time, and each break
+failed a test.
 
 **Releasing:** bump `version` in both `wally.toml` files (and `quarry-react-query`'s dependency on
 `quarry-query`), add the changes to `CHANGELOG.md`, and publish a GitHub release tagged `vX.Y.Z`. The
