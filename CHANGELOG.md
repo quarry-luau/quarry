@@ -15,7 +15,7 @@ and versions follow [Semantic Versioning](https://semver.org).
 
 - `setQueryData` raises for a key read typed (through `client:data` or `useQuery`); such a key is
   written only through `client:data(definition)`, so its typed readers always get its type.
-
+- `onMutate` may return nothing, as in TanStack Query; the context is then nil.
 - `QueryFunction<T>`, `QueryObserverOptions<T>` and `QueryObserverResult<T>` are generic in the
   data (`unknown` when left out). `ReactQuery.Options<T>` is the core's `QueryOptions<T>` and
   `ReactQuery.Result<T>` its `QueryObserverResult<T>`.
