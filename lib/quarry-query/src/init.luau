@@ -11,6 +11,7 @@ local Scheduler = require("@self/Scheduler")
 
 export type QueryKey = Key.QueryKey
 export type QueryClient = QueryClient.QueryClient
+export type Data<T> = QueryClient.Data<T>
 export type QueryClientConfig = QueryClient.Config
 export type QueryFilters = QueryClient.Filters
 export type InvalidateQueryFilters = QueryClient.InvalidateFilters
@@ -29,7 +30,7 @@ export type CancelledError = Retryer.CancelledError
 export type Scheduler = Scheduler.Scheduler
 
 -- `options`, as given: the query defined once with its data type, for
--- useQuery and the typed cache calls.
+-- useQuery and client:data.
 local function queryOptions<T>(
 	options: Query.QueryOptions<T>
 ): Query.QueryOptions<T>

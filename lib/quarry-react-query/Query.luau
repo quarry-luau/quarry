@@ -4,6 +4,7 @@ local Query = require(script.Parent["quarry-query"])
 
 export type QueryKey = Query.QueryKey
 export type QueryClient = Query.QueryClient
+export type Data<T> = Query.Data<T>
 export type QueryClientConfig = Query.QueryClientConfig
 export type QueryFilters = Query.QueryFilters
 export type InvalidateQueryFilters = Query.InvalidateQueryFilters

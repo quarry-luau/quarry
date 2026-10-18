@@ -8,8 +8,8 @@ and versions follow [Semantic Versioning](https://semver.org).
 ### Added
 
 - `Query.queryOptions(options)` defines a query with its data type, as in TanStack Query v5, and
-  `client:getTypedData(definition)` and `client:updateTypedData(definition, updater)` read and
-  write its cache entry with that type.
+  `client:data(definition)` reads and writes its cache entry with that type: `get()`, `set(value)`
+  and `update(updater)`, whose `old` is typed without an annotation.
 
 ### Changed
 

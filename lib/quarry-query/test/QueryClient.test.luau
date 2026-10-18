@@ -3,7 +3,6 @@ local Testing = require("../../../.lune/testing")
 
 local Fake = require("./Fake")
 local Observer = require("../src/Observer")
-local Query = require("../src/Query")
 local QueryClient = require("../src/QueryClient")
 
 type Advance = (seconds: number) -> ()
@@ -472,44 +471,67 @@ local suite: Testing.Suite = function(test, expect)
 		expect.equal(calls, 1)
 	end)
 
-	test("typed calls read and update a defined query's data", function()
-		local client = setup()
-		local player: Query.QueryOptions<{ coins: number }> = {
-			queryKey = { "player" },
-			queryFn = function(): { coins: number }
-				return { coins = 0 }
-			end,
-		}
-		expect.equal(client:getTypedData(player), nil)
-		client:setQueryData({ "player" }, { coins = 10 })
-		local function spend(
-			old: { coins: number }?
-		): { coins: number }?
-			return if old then { coins = old.coins - 4 } else nil
+	test(
+		"a definition's data reads, sets and updates as its type",
+		function()
+			local client = setup()
+			local player = client:data({
+				queryKey = { "player" },
+				queryFn = function(): { coins: number }
+					return { coins = 0 }
+				end,
+			})
+			expect.equal(player:get(), nil)
+			expect.deepEqual(
+				player:set({ coins = 10 }),
+				{ coins = 10 }
+			)
+			local written = player:update(function(old)
+				return if old
+					then { coins = old.coins - 4 }
+					else nil
+			end)
+			expect.deepEqual(written, { coins = 6 })
+			expect.deepEqual(player:get(), { coins = 6 })
+			expect.deepEqual(
+				client:getQueryData({ "player" }),
+				{ coins = 6 }
+			)
 		end
-		local written = client:updateTypedData(player, spend)
-		expect.deepEqual(written, { coins = 6 })
-		expect.deepEqual(client:getTypedData(player), { coins = 6 })
-		expect.deepEqual(
-			client:getQueryData({ "player" }),
-			{ coins = 6 }
-		)
-	end)
+	)
 
-	test("an updater returning nil writes nothing", function()
+	test("nil from set or an update writes nothing", function()
 		local client = setup()
-		local player: Query.QueryOptions<number> = {
+		local coins = client:data({
 			queryKey = { "coins" },
 			queryFn = function(): number
 				return 0
 			end,
-		}
-		client:setQueryData({ "coins" }, 5)
-		local function clear(_: number?): number?
-			return nil
+		})
+		coins:set(5)
+		expect.equal(coins:set(nil), nil)
+		expect.equal(
+			coins:update(function()
+				return nil
+			end),
+			nil
+		)
+		expect.equal(coins:get(), 5)
+	end)
+
+	test("data that is a function is set, not called", function()
+		local client = setup()
+		local function handler(): number
+			return 1
 		end
-		expect.equal(client:updateTypedData(player, clear), nil)
-		expect.equal(client:getTypedData(player), 5)
+		local callback = client:data({
+			queryKey = { "callback" },
+			queryFn = function(): () -> number
+				return handler
+			end,
+		})
+		callback:set(handler)
+		expect.equal(callback:get(), handler)
 	end)
 
 	test("switching keys fetches the new one, drops the old", function()
