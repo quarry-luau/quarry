@@ -1,0 +1,13 @@
+[package]
+name = "pcruz1905/quarry"
+description = "TanStack Query for Luau: cached, deduplicated, retried server data with optimistic updates"
+version = "0.1.0"
+license = "MIT"
+authors = ["Pedro Cruz"]
+repository = "https://github.com/pcruz1905/quarry"
+homepage = "https://github.com/pcruz1905/quarry"
+registry = "https://github.com/UpliftGames/wally-index"
+realm = "shared"
+exclude = ["test"]
+
+[dependencies]
