@@ -1,0 +1,6 @@
+{
+	"name": "quarry-query",
+	"tree": {
+		"$path": "src"
+	}
+}

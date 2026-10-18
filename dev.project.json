@@ -1,0 +1,26 @@
+{
+	"name": "quarry-query-dev",
+	"tree": {
+		"$className": "DataModel",
+		"ReplicatedStorage": {
+			"Packages": {
+				"$path": "Packages"
+			},
+			"Index": {
+				"$className": "Folder",
+				"quarry-query": {
+					"$path": "lib/quarry-query/src"
+				},
+				"quarry-react-query": {
+					"$path": "lib/quarry-react-query/src"
+				},
+				"Query": {
+					"$path": "lib/quarry-react-query/Query.luau"
+				},
+				"React": {
+					"$path": "lib/quarry-react-query/React.luau"
+				}
+			}
+		}
+	}
+}
