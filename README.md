@@ -352,9 +352,7 @@ ported from TanStack has a test, and each test has been seen to fail when its ru
 **Releasing:** bump `version` in both `wally.toml` files (and `react-quarry`'s dependency on
 `quarry`), add the changes to `CHANGELOG.md`, and publish a GitHub release tagged `vX.Y.Z`. The
 release workflow checks the versions match the tag, builds the models into the release, and
-publishes both packages to Wally. It needs a `WALLY_AUTH_TOKEN` secret: the token Wally keeps after
-`wally login` (in `~/.wally/auth.toml`) by a member of the `quarry-luau` organization. Wally accepts
-only tokens from its own GitHub sign-in, not a personal access token.
+publishes both packages to Wally.
 
 ## License
 
