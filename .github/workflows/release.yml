@@ -23,7 +23,7 @@ jobs:
           for manifest in lib/quarry/wally.toml lib/react-quarry/wally.toml; do
             grep -q "^version = \"$version\"$" "$manifest" || { echo "$manifest is not version $version"; exit 1; }
           done
-          grep -q "^Quarry = \"pcruz1905/quarry@$version\"$" lib/react-quarry/wally.toml \
+          grep -q "^Quarry = \"quarry-luau/quarry@$version\"$" lib/react-quarry/wally.toml \
             || { echo "react-quarry does not depend on quarry $version"; exit 1; }
 
       - name: Install packages
@@ -45,9 +45,9 @@ jobs:
           wally login --token "$WALLY_AUTH_TOKEN"
           for name in quarry react-quarry; do
             # A version already on Wally (published by hand) is left as it is.
-            if curl -fsS -H "Wally-Version: 0.3.2" "https://api.wally.run/v1/package-metadata/pcruz1905/$name" \
+            if curl -fsS -H "Wally-Version: 0.3.2" "https://api.wally.run/v1/package-metadata/quarry-luau/$name" \
               | grep -q "\"version\":\"$version\""; then
-              echo "pcruz1905/$name@$version is already published"
+              echo "quarry-luau/$name@$version is already published"
               continue
             fi
             wally publish --project-path "lib/$name"

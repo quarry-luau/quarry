@@ -3,15 +3,15 @@
   <p align="center">
     TanStack Query for Roblox: server data, cached and kept fresh
     <br />
-    <a href="https://wally.run/package/pcruz1905/quarry"><strong>Wally package →</strong></a>
+    <a href="https://wally.run/package/quarry-luau/quarry"><strong>Wally package →</strong></a>
   </p>
 </p>
 
 <div align="center">
 
-[![CI](https://img.shields.io/github/actions/workflow/status/pcruz1905/quarry/ci.yml?style=for-the-badge&branch=main&logo=github&label=CI)](https://github.com/pcruz1905/quarry/actions/workflows/ci.yml)
-[![Wally](https://img.shields.io/badge/wally-pcruz1905%2Fquarry-AD4646?style=for-the-badge)](https://wally.run/package/pcruz1905/quarry)
-[![License](https://img.shields.io/github/license/pcruz1905/quarry?style=for-the-badge)](LICENSE)
+[![CI](https://img.shields.io/github/actions/workflow/status/quarry-luau/quarry/ci.yml?style=for-the-badge&branch=main&logo=github&label=CI)](https://github.com/quarry-luau/quarry/actions/workflows/ci.yml)
+[![Wally](https://img.shields.io/badge/wally-quarry-luau%2Fquarry-AD4646?style=for-the-badge)](https://wally.run/package/quarry-luau/quarry)
+[![License](https://img.shields.io/github/license/quarry-luau/quarry?style=for-the-badge)](LICENSE)
 
 </div>
 
@@ -99,11 +99,11 @@ end
 ```toml
 # wally.toml
 [dependencies]
-Quarry = "pcruz1905/quarry@0.1.0"
-ReactQuarry = "pcruz1905/react-quarry@0.1.0" # the React hooks, if you use React-Lua
+Quarry = "quarry-luau/quarry@0.1.0"
+ReactQuarry = "quarry-luau/react-quarry@0.1.0" # the React hooks, if you use React-Lua
 ```
 
-Then `wally install`. Each [release](https://github.com/pcruz1905/quarry/releases) also has
+Then `wally install`. Each [release](https://github.com/quarry-luau/quarry/releases) also has
 `quarry.rbxm` and `react-quarry.rbxm` to drop into a place without Wally (put `react-quarry` next to
 `Quarry` and `React` modules).
 
@@ -352,8 +352,9 @@ ported from TanStack has a test, and each test has been seen to fail when its ru
 **Releasing:** bump `version` in both `wally.toml` files (and `react-quarry`'s dependency on
 `quarry`), add the changes to `CHANGELOG.md`, and publish a GitHub release tagged `vX.Y.Z`. The
 release workflow checks the versions match the tag, builds the models into the release, and
-publishes both packages to Wally. It needs a `WALLY_AUTH_TOKEN` secret: a GitHub token of the
-account that owns the `pcruz1905` scope, as `wally login --token` takes it.
+publishes both packages to Wally. It needs a `WALLY_AUTH_TOKEN` secret: the token Wally keeps after
+`wally login` (in `~/.wally/auth.toml`) by a member of the `quarry-luau` organization. Wally accepts
+only tokens from its own GitHub sign-in, not a personal access token.
 
 ## License
 

@@ -18,4 +18,4 @@ First release: a port of TanStack Query's query-core and react-query 5.104.
 - `react-quarry`: `QueryClientProvider`, `useQueryClient`, `useQuery`, `useQuerySelect` and
   `useMutation` (with `optimistic` and `validate`).
 
-[0.1.0]: https://github.com/pcruz1905/quarry/releases/tag/v0.1.0
+[0.1.0]: https://github.com/quarry-luau/quarry/releases/tag/v0.1.0

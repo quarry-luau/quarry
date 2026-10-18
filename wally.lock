@@ -88,6 +88,6 @@ version = "1.2.7"
 dependencies = [["collections", "jsdotlua/collections@1.2.7"]]
 
 [[package]]
-name = "pcruz1905/quarry-dev"
+name = "quarry-luau/quarry-dev"
 version = "0.0.0"
 dependencies = [["React", "jsdotlua/react@17.2.1"], ["ReactRoblox", "jsdotlua/react-roblox@17.2.1"]]

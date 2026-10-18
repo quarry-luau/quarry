@@ -1,15 +1,15 @@
 [package]
-name = "pcruz1905/react-quarry"
+name = "quarry-luau/react-quarry"
 description = "React-Lua hooks for Quarry: useQuery, useQuerySelect, useMutation and QueryClientProvider"
 version = "0.1.0"
 license = "MIT"
 authors = ["Pedro Cruz"]
-repository = "https://github.com/pcruz1905/quarry"
-homepage = "https://github.com/pcruz1905/quarry"
+repository = "https://github.com/quarry-luau/quarry"
+homepage = "https://github.com/quarry-luau/quarry"
 registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
 exclude = ["test", "React.luau", "Quarry.luau"]
 
 [dependencies]
-Quarry = "pcruz1905/quarry@0.1.0"
+Quarry = "quarry-luau/quarry@0.1.0"
 React = "jsdotlua/react@^17.2.1"
