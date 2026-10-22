@@ -5,6 +5,8 @@ and versions follow [Semantic Versioning](https://semver.org).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-22
+
 ### Added
 
 - `Query.queryOptions(options)` defines a query with its data type, as in TanStack Query v5, and
@@ -37,5 +39,6 @@ First release: a port of TanStack Query's query-core and react-query 5.104.
 - `quarry-react-query`: `QueryClientProvider`, `useQueryClient`, `useQuery`, `useQuerySelect` and
   `useMutation` (with `optimistic` and `validate`).
 
-[Unreleased]: https://github.com/quarry-luau/quarry-query/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/quarry-luau/quarry-query/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/quarry-luau/quarry-query/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/quarry-luau/quarry-query/releases/tag/v0.1.0

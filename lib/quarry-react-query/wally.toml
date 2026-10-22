@@ -1,7 +1,7 @@
 [package]
 name = "quarry-luau/quarry-react-query"
 description = "React-Lua hooks for Quarry: useQuery, useQuerySelect, useMutation and QueryClientProvider"
-version = "0.1.0"
+version = "0.2.0"
 license = "MIT"
 authors = ["Pedro Cruz"]
 repository = "https://github.com/quarry-luau/quarry-query"
@@ -11,5 +11,5 @@ realm = "shared"
 exclude = ["test", "React.luau", "Query.luau"]
 
 [dependencies]
-Query = "quarry-luau/quarry-query@0.1.0"
+Query = "quarry-luau/quarry-query@0.2.0"
 React = "jsdotlua/react@^17.2.1"

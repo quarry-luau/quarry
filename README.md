@@ -106,8 +106,8 @@ end
 ```toml
 # wally.toml
 [dependencies]
-Query = "quarry-luau/quarry-query@0.1.0"
-ReactQuery = "quarry-luau/quarry-react-query@0.1.0" # the React hooks, if you use React-Lua
+Query = "quarry-luau/quarry-query@0.2.0"
+ReactQuery = "quarry-luau/quarry-react-query@0.2.0" # the React hooks, if you use React-Lua
 ```
 
 Then `wally install`.

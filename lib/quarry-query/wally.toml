@@ -1,7 +1,7 @@
 [package]
 name = "quarry-luau/quarry-query"
 description = "TanStack Query for Luau: cached, deduplicated, retried server data with optimistic updates"
-version = "0.1.0"
+version = "0.2.0"
 license = "MIT"
 authors = ["Pedro Cruz"]
 repository = "https://github.com/quarry-luau/quarry-query"
