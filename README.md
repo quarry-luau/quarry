@@ -112,11 +112,6 @@ ReactQuery = "quarry-luau/quarry-react-query@0.1.0" # the React hooks, if you us
 
 Then `wally install`.
 
-> **Note:** the `quarry-luau` scope is waiting for Wally to approve it
-> ([wally-index#131](https://github.com/UpliftGames/wally-index/pull/131)); until then the packages
-> are not on Wally yet. Use the `.rbxm` models from the
-> [latest release](https://github.com/quarry-luau/quarry-query/releases/latest) meanwhile.
-
 Each [release](https://github.com/quarry-luau/quarry-query/releases) also has
 `quarry-query.rbxm` and `quarry-react-query.rbxm` to drop into a place without Wally (put
 `quarry-react-query` next to `Query` and `React` modules).
